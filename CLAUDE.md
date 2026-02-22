@@ -26,7 +26,7 @@ No linter is currently configured.
 
 **Pipeline:** Source files → tree-sitter parse → extract symbols → resolve imports → SQLite DB → query/search
 
-All source is plain JavaScript (ES modules) in `src/`. No transpilation step.
+JS source is plain JavaScript (ES modules) in `src/`. No transpilation step. The Rust native engine lives in `crates/codegraph-core/`.
 
 | File | Role |
 |------|------|
@@ -43,9 +43,14 @@ All source is plain JavaScript (ES modules) in `src/`. No transpilation step.
 | `watcher.js` | Watch mode for incremental rebuilds |
 | `config.js` | `.codegraphrc.json` loading |
 | `constants.js` | `EXTENSIONS` and `IGNORE_DIRS` constants |
+| `native.js` | Native napi-rs addon loader with WASM fallback |
+| `resolve.js` | Import resolution (supports native batch mode) |
+| `logger.js` | Structured logging (`warn`, `debug`, `info`, `error`) |
 
 **Key design decisions:**
-- WASM grammars are pre-built and committed in `grammars/` — no native compilation needed
+- **Dual-engine architecture:** Native Rust parsing via napi-rs (`crates/codegraph-core/`) with automatic fallback to WASM. Controlled by `--engine native|wasm|auto` (default: `auto`)
+- Platform-specific prebuilt binaries published as optional npm packages (`@optave/codegraph-{platform}-{arch}`)
+- WASM grammars are pre-built and committed in `grammars/` — used as fallback when native addon is unavailable
 - `@huggingface/transformers` and `@modelcontextprotocol/sdk` are optional dependencies, lazy-loaded
 - HCL and Python parsers fail gracefully if unavailable
 - Import resolution uses a 6-level priority system with confidence scoring (import-aware → same-file → directory → parent → global → method hierarchy)

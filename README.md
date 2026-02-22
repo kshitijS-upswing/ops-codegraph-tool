@@ -39,7 +39,7 @@
 
 ## 💡 Why codegraph?
 
-<sub>Comparison last verified: February 2025</sub>
+<sub>Comparison last verified: February 2026</sub>
 
 Most dependency graph tools only tell you which **files** import which — codegraph tells you which **functions** call which, who their callers are, and what breaks when something changes. Here's how it compares to the alternatives:
 
@@ -69,7 +69,7 @@ Most dependency graph tools only tell you which **files** import which — codeg
 | **🤖** | **AI-agent ready** | Built-in [MCP server](https://modelcontextprotocol.io/) — AI assistants query your graph directly via `codegraph fn <name>` |
 | **💥** | **Git diff impact** | `codegraph diff-impact` shows changed functions, their callers, and full blast radius — ships with a GitHub Actions workflow |
 | **🔒** | **Fully local, zero telemetry** | No accounts, no API keys, no cloud, no data exfiltration — Apache-2.0, free forever |
-| **⚡** | **Build once, query instantly** | SQLite-backed — build in ~30s, every query under 100ms. Most competitors re-parse every run |
+| **⚡** | **Build once, query instantly** | SQLite-backed — build in ~30s, every query under 100ms. Native Rust engine with WASM fallback. Most competitors re-parse every run |
 | **🧠** | **Semantic search** | `codegraph search "handle auth"` uses local embeddings — multi-query with RRF ranking via `"auth; token; JWT"` |
 
 ### How other tools compare
@@ -137,6 +137,7 @@ codegraph deps src/index.ts  # file-level import/export map
 ```bash
 codegraph build [dir]          # Parse and build the dependency graph
 codegraph build --no-incremental  # Force full rebuild
+codegraph build --engine wasm  # Force WASM engine (skip native)
 codegraph watch [dir]          # Watch for changes, update graph incrementally
 ```
 
@@ -226,6 +227,7 @@ codegraph mcp                  # Start MCP server for AI assistants
 | `--depth <n>` | Transitive trace depth (default varies by command) |
 | `-j, --json` | Output as JSON |
 | `-v, --verbose` | Enable debug output |
+| `--engine <engine>` | Parser engine: `native`, `wasm`, or `auto` (default: `auto`) |
 | `-k, --kind <kind>` | Filter by kind: `function`, `method`, `class` (search) |
 | `--file <pattern>` | Filter by file path pattern (search) |
 | `--rrf-k <n>` | RRF smoothing constant for multi-query search (default 60) |
@@ -259,11 +261,22 @@ codegraph mcp                  # Start MCP server for AI assistants
                                                                  └─────────┘
 ```
 
-1. **Parse** — tree-sitter (WASM) parses every source file into an AST
+1. **Parse** — tree-sitter parses every source file into an AST (native Rust engine or WASM fallback)
 2. **Extract** — Functions, classes, methods, interfaces, imports, exports, and call sites are extracted
 3. **Resolve** — Imports are resolved to actual files (handles ESM conventions, `tsconfig.json` path aliases, `baseUrl`)
 4. **Store** — Everything goes into SQLite as nodes + edges with tree-sitter node boundaries
 5. **Query** — All queries run locally against the SQLite DB — typically under 100ms
+
+### Dual Engine
+
+Codegraph ships with two parsing engines:
+
+| Engine | How it works | When it's used |
+|--------|-------------|----------------|
+| **Native** (Rust) | napi-rs addon built from `crates/codegraph-core/` — parallel multi-core parsing via rayon | Auto-selected when the prebuilt binary is available |
+| **WASM** | `web-tree-sitter` with pre-built `.wasm` grammars in `grammars/` | Fallback when the native addon isn't installed |
+
+Both engines produce identical output. Use `--engine native|wasm|auto` to control selection (default: `auto`).
 
 ### Call Resolution
 
@@ -397,6 +410,17 @@ const results = queryNameData('myFunction', '/path/to/.codegraph/graph.db');
 ```
 
 ```js
+import { parseFileAuto, getActiveEngine, isNativeAvailable } from '@optave/codegraph';
+
+// Check which engine is active
+console.log(getActiveEngine());      // 'native' or 'wasm'
+console.log(isNativeAvailable());    // true if Rust addon is installed
+
+// Parse a single file (uses auto-selected engine)
+const symbols = await parseFileAuto('/path/to/file.ts');
+```
+
+```js
 import { searchData, multiSearchData, buildEmbeddings } from '@optave/codegraph';
 
 // Build embeddings (one-time)
@@ -424,7 +448,7 @@ const { results: fused } = await multiSearchData(
 
 See **[ROADMAP.md](ROADMAP.md)** for the full development roadmap. Current plan:
 
-1. **Rust Core** — native tree-sitter parsing via napi-rs, parallel multi-core parsing, incremental re-parsing, import resolution & cycle detection in Rust
+1. ~~**Rust Core**~~ — **Complete** (v1.3.0) — native tree-sitter parsing via napi-rs, parallel multi-core parsing, incremental re-parsing, import resolution & cycle detection in Rust
 2. **Foundation Hardening** — parser registry, complete MCP server, test coverage, enhanced config
 3. **Intelligent Embeddings** — LLM-generated descriptions, hybrid search
 4. **Natural Language Queries** — `codegraph ask` command, conversational sessions

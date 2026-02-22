@@ -17,7 +17,7 @@ const program = new Command();
 program
   .name('codegraph')
   .description('Local code dependency graph tool')
-  .version('1.2.0')
+  .version('1.3.0')
   .option('-v, --verbose', 'Enable verbose/debug output')
   .option('--engine <engine>', 'Parser engine: native, wasm, or auto (default: auto)', 'auto')
   .hook('preAction', (thisCommand) => {

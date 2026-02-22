@@ -1,6 +1,6 @@
 # Codegraph Roadmap
 
-> **Current version:** 1.2.0 | **Status:** Active development | **Updated:** February 2026
+> **Current version:** 1.3.0 | **Status:** Active development | **Updated:** February 2026
 
 Codegraph is a strong local-first code graph CLI. This roadmap describes planned improvements across seven phases — closing gaps with commercial code intelligence platforms while preserving codegraph's core strengths: fully local, open source, zero cloud dependency by default.
 
@@ -12,7 +12,7 @@ Codegraph is a strong local-first code graph CLI. This roadmap describes planned
 
 | Phase | Theme | Key Deliverables | Status |
 |-------|-------|-----------------|--------|
-| [**1**](#phase-1--rust-core) | Rust Core | Rust parsing engine via napi-rs, parallel parsing, incremental tree-sitter, JS orchestration layer | Planned |
+| [**1**](#phase-1--rust-core) | Rust Core | Rust parsing engine via napi-rs, parallel parsing, incremental tree-sitter, JS orchestration layer | **Complete** (v1.3.0) |
 | [**2**](#phase-2--foundation-hardening) | Foundation Hardening | Parser registry, complete MCP, test coverage, enhanced config | Planned |
 | [**3**](#phase-3--intelligent-embeddings) | Intelligent Embeddings | LLM-generated descriptions, hybrid search | Planned |
 | [**4**](#phase-4--natural-language-queries) | Natural Language Queries | `ask` command, conversational sessions | Planned |
@@ -33,7 +33,9 @@ Phases 1-4 ──→ Phase 7 (Visualization & Advanced)
 
 ---
 
-## Phase 1 — Rust Core
+## Phase 1 — Rust Core ✅
+
+> **Status:** Complete — shipped in v1.3.0
 
 **Goal:** Move the CPU-intensive parsing and graph engine to Rust, keeping JS for CLI orchestration, MCP, and embeddings. This unlocks parallel parsing, incremental tree-sitter, lower memory usage, and optional standalone binary distribution.
 
