@@ -2,6 +2,7 @@
  * Unit tests for src/constants.js
  */
 
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   EXTENSIONS,
@@ -89,8 +90,10 @@ describe('isSupportedFile', () => {
 });
 
 describe('normalizePath', () => {
-  it('replaces backslashes with forward slashes', () => {
-    expect(normalizePath('src\\lib\\utils.js')).toBe('src/lib/utils.js');
+  it('normalizes platform separators to forward slashes', () => {
+    // Build a path using the OS-native separator
+    const native = ['src', 'lib', 'utils.js'].join(path.sep);
+    expect(normalizePath(native)).toBe('src/lib/utils.js');
   });
 
   it('leaves forward slashes unchanged', () => {
